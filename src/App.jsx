@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import TopBar from "./components/TopBar";
+import Dock from "./components/Dock";
 
 const textMotion = {
   hover: {
@@ -12,7 +13,10 @@ const textMotion = {
 
 const AnimatedLetters = ({ text, fontStyle, className }) => {
   return (
-    <motion.div className={`flex justify-center ${className}`} style={{ fontFamily: fontStyle }}>
+    <motion.div
+      className={`flex justify-center ${className}`}
+      style={{ fontFamily: fontStyle }}
+    >
       {text.split("").map((char, index) => (
         <motion.span
           key={index}
@@ -28,6 +32,23 @@ const AnimatedLetters = ({ text, fontStyle, className }) => {
   );
 };
 
+// Optional error boundary wrapper
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  render() {
+    if (this.state.hasError) {
+      return <h1 className="text-center text-xl mt-10">Oops! Something went wrong.</h1>;
+    }
+    return this.props.children;
+  }
+}
+
 export default function App() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
@@ -42,42 +63,49 @@ export default function App() {
   };
 
   return (
-    <div
-      onMouseMove={handleMouseMove}
-      className="h-screen w-screen bg-cover bg-center flex items-center justify-center"
-      style={{
-        backgroundImage: "url('/wallpapers/bg.png')",
-      }}
-    >
-       <TopBar />
-      <motion.div
-        className="text-center space-y-[-1.5rem]"
+    <ErrorBoundary>
+      <div
+        onMouseMove={handleMouseMove}
+        className="relative h-screen w-screen overflow-hidden bg-cover bg-center"
         style={{
-          transform: `translate(${mousePosition.x}px, ${mousePosition.y}px)`,
-        }}
-        transition={{
-          type: "spring",
-          stiffness: 50,
-          damping: 10,
+          backgroundImage: "url('/wallpapers/bg.png')",
         }}
       >
-        <motion.p
-          whileHover={{ scale: 1.1 }}
-          className="italic mb-0 text-[35px] font-light"
+        <TopBar />
+
+        {/* Centered animated content */}
+        <motion.div
+          className="absolute top-1/2 left-1/2 text-center space-y-[-1.5rem] z-10"
           style={{
-            fontFamily: "'Instrument Sans', sans-serif",
-            color: "black",
+            transform: `translate(calc(-50% + ${mousePosition.x}px), calc(-50% + ${mousePosition.y}px))`,
+          }}
+          transition={{
+            type: "spring",
+            stiffness: 50,
+            damping: 10,
           }}
         >
-          explore my
-        </motion.p>
+          <motion.p
+            whileHover={{ scale: 1.1 }}
+            className="italic mb-0 text-[35px] font-light"
+            style={{
+              fontFamily: "'Instrument Sans', sans-serif",
+              color: "black",
+            }}
+          >
+            explore my
+          </motion.p>
 
-        <AnimatedLetters
-          text="portfolio"
-          className="italic -mt-6 text-[120px]"
-          fontStyle="'Instrument Serif', serif"
-        />
-      </motion.div>
-    </div>
+          <AnimatedLetters
+            text="portfolio"
+            className="italic -mt-6 text-[120px]"
+            fontStyle="'Instrument Serif', serif"
+          />
+        </motion.div>
+
+        {/* Dock pinned to bottom */}
+        <Dock />
+      </div>
+    </ErrorBoundary>
   );
 }
